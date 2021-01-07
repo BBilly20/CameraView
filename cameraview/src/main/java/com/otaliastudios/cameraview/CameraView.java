@@ -75,6 +75,7 @@ import com.otaliastudios.cameraview.markers.MarkerLayout;
 import com.otaliastudios.cameraview.markers.MarkerParser;
 import com.otaliastudios.cameraview.metering.MeteringRegions;
 import com.otaliastudios.cameraview.overlay.OverlayLayout;
+import com.otaliastudios.cameraview.preview.ARPreview;
 import com.otaliastudios.cameraview.preview.CameraPreview;
 import com.otaliastudios.cameraview.preview.FilterCameraPreview;
 import com.otaliastudios.cameraview.preview.GlCameraPreview;
@@ -381,6 +382,10 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
             case GL_SURFACE: default: {
                 mPreview = Preview.GL_SURFACE;
                 return new GlCameraPreview(context, container);
+            }
+            case AR: {
+                mPreview = Preview.AR;
+                return new ARPreview(context, container);
             }
         }
     }

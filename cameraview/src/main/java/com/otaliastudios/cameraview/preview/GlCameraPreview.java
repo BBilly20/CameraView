@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -65,15 +64,15 @@ public class GlCameraPreview extends CameraPreview<GLSurfaceView, SurfaceTexture
         implements FilterCameraPreview, RendererCameraPreview {
 
     private boolean mDispatched;
-    private SurfaceTexture mInputSurfaceTexture;
-    private GlTextureDrawer mOutputTextureDrawer;
+    protected SurfaceTexture mInputSurfaceTexture;
+    protected GlTextureDrawer mOutputTextureDrawer;
     // A synchronized set was not enough to avoid crashes, probably due to external classes
     // removing the callback while this set is being iterated. CopyOnWriteArraySet solves this.
-    private final Set<RendererFrameCallback> mRendererFrameCallbacks = new CopyOnWriteArraySet<>();
+    protected final Set<RendererFrameCallback> mRendererFrameCallbacks = new CopyOnWriteArraySet<>();
     @VisibleForTesting float mCropScaleX = 1F;
     @VisibleForTesting float mCropScaleY = 1F;
     private View mRootView;
-    private Filter mCurrentFilter;
+    protected Filter mCurrentFilter;
 
     public GlCameraPreview(@NonNull Context context, @NonNull ViewGroup parent) {
         super(context, parent);
@@ -233,11 +232,10 @@ public class GlCameraPreview extends CameraPreview<GLSurfaceView, SurfaceTexture
             }
 
             mOutputTextureDrawer.draw(mInputSurfaceTexture.getTimestamp() / 1000L);
+
             for (RendererFrameCallback callback : mRendererFrameCallbacks) {
                 callback.onRendererFrame(mInputSurfaceTexture, mDrawRotation, mCropScaleX, mCropScaleY);
             }
-
-            Log.d("dummy", "onDrawFrame completed");
         }
     }
 

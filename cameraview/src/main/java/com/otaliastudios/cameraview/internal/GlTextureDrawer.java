@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.otaliastudios.cameraview.CameraLogger;
 import com.otaliastudios.cameraview.filter.Filter;
+import com.otaliastudios.cameraview.filter.MultiFilter;
 import com.otaliastudios.cameraview.filter.NoFilter;
 import com.otaliastudios.opengl.core.Egloo;
 import com.otaliastudios.opengl.program.GlProgram;
@@ -68,24 +69,29 @@ public class GlTextureDrawer {
             release();
             mFilter = mPendingFilter;
             mPendingFilter = null;
-
         }
 
-        if (mProgramHandle == -1) {
-            mProgramHandle = GlProgram.create(
-                    mFilter.getVertexShader(),
-                    mFilter.getFragmentShader());
-            mFilter.onCreate(mProgramHandle);
-            Egloo.checkGlError("program creation");
-        }
+        if(mFilter instanceof MultiFilter)
+            mFilter.draw(timestampUs, mTextureTransform);
+        else{
+            if (mProgramHandle == -1) {
+                mProgramHandle = GlProgram.create(mFilter.getVertexShader(), mFilter.getFragmentShader());
+                mFilter.onCreate(mProgramHandle);
+                Egloo.checkGlError("program creation");
+            }
 
-        GLES20.glUseProgram(mProgramHandle);
-        Egloo.checkGlError("glUseProgram(handle)");
-        mTexture.bind();
-        mFilter.draw(timestampUs, mTextureTransform);
-        mTexture.unbind();
-        GLES20.glUseProgram(0);
-        Egloo.checkGlError("glUseProgram(0)");
+            GLES20.glUseProgram(mProgramHandle);
+            Egloo.checkGlError("glUseProgram(handle)");
+
+            mTexture.bind();
+
+            mFilter.draw(timestampUs, mTextureTransform);
+
+            mTexture.unbind();
+
+            GLES20.glUseProgram(0);
+            Egloo.checkGlError("glUseProgram(0)");
+        }
     }
 
     public void release() {

@@ -81,6 +81,7 @@
             <enum name="surface" value="0" />
             <enum name="texture" value="1" />
             <enum name="glSurface" value="2" />
+            <enum name="ar" value="3" />
         </attr>
 
         <attr name="cameraFacing" format="enum">

@@ -81,6 +81,15 @@ public class MultiFilter implements Filter, OneParameterFilter, TwoParameterFilt
         }
     }
 
+    public void insertFilter(@NonNull Filter filter) {
+        synchronized (lock) {
+            if (!filters.contains(filter)) {
+                filters.add(0, filter);
+                states.put(filter, new State());
+            }
+        }
+    }
+
     /**
      * Adds a new filter. It will be used in the next frame.
      * If the filter is a {@link MultiFilter}, we'll use its children instead.

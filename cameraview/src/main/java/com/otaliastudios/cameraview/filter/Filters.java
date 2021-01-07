@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.otaliastudios.cameraview.filters.AutoFixFilter;
 import com.otaliastudios.cameraview.filters.BlackAndWhiteFilter;
 import com.otaliastudios.cameraview.filters.BrightnessFilter;
+import com.otaliastudios.cameraview.filters.CombineFilter;
 import com.otaliastudios.cameraview.filters.ContrastFilter;
 import com.otaliastudios.cameraview.filters.CrossProcessFilter;
 import com.otaliastudios.cameraview.filters.DocumentaryFilter;
@@ -96,7 +97,9 @@ public enum Filters {
     TINT(TintFilter.class),
 
     /** @see VignetteFilter */
-    VIGNETTE(VignetteFilter.class);
+    VIGNETTE(VignetteFilter.class),
+
+    COMBINE(CombineFilter.class);
 
     private Class<? extends Filter> filterClass;
 

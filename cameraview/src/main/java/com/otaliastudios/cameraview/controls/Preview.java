@@ -32,7 +32,9 @@ public enum Preview implements Control {
      * supports picture snapshots while taking videos, supports
      * watermarks and overlays, supports real-time filters.
      */
-    GL_SURFACE(2);
+    GL_SURFACE(2),
+
+    AR(3);
 
     final static Preview DEFAULT = GL_SURFACE;
 
