@@ -165,6 +165,8 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     // Overlays
     @VisibleForTesting OverlayLayout mOverlayLayout;
 
+    private String customPreviewClass;
+
     public CameraView(@NonNull Context context) {
         super(context, null);
         initialize(context, null);
@@ -186,6 +188,8 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.CameraView,
                 0, 0);
         ControlParser controls = new ControlParser(context, a);
+
+        customPreviewClass = a.getString(R.styleable.CameraView_customPreviewClass);
 
         // Self managed
         boolean playSounds = a.getBoolean(R.styleable.CameraView_cameraPlaySounds,
@@ -370,6 +374,15 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     protected CameraPreview instantiatePreview(@NonNull Preview preview,
                                                @NonNull Context context,
                                                @NonNull ViewGroup container) {
+
+        if(customPreviewClass != null) {
+            try {
+                return (CameraPreview) Class.forName(customPreviewClass).getConstructors()[0].newInstance(context, container);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         switch (preview) {
             case SURFACE:
                 return new SurfaceCameraPreview(context, container);

@@ -12,19 +12,29 @@ import com.otaliastudios.opengl.texture.GlTexture;
 
 public class CombineFilter extends BaseFilter {
 
-    private final static String FRAGMENT_SHADER = "#extension GL_OES_EGL_image_external : require\n"
-        + "precision mediump float;\n"
-        + "varying vec2 "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+";\n"
-        + "uniform samplerExternalOES sTexture;\n"
-        + "uniform sampler2D overlayTex;\n"
-        + "void main() {\n"
-        + "  vec4 overlay = texture2D(overlayTex, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+");\n"
-        + "  gl_FragColor = mix(texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+"), overlay, overlay.a);\n"
-        + "}\n";
+    private final static String FRAGMENT_SHADER = "#extension GL_OES_EGL_image_external : require\n" +
+        "precision mediump float;\n" +
+        "varying vec2 "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+";\n" +
+        "uniform samplerExternalOES sTexture;\n" +
+        "uniform sampler2D overlayTex;\n" +
+        "uniform vec2 cropScale;\n" +
+        "vec2 rotate(vec2 v, float a){\n" +
+        "  float s = sin(radians(a));\n" +
+        "  float c = cos(radians(a));\n" +
+        "  return (mat2(c,s,-s,c) * (v - 0.5)) / cropScale + 0.5;" +
+        "}" +
+        "void main(){\n" +
+        "  vec4 overlay = texture2D(overlayTex, rotate("+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+", 90.0));\n" +
+        "  gl_FragColor = mix(texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+"), overlay, overlay.a);\n" +
+        "}\n";
 
-    private int overlayLocation = -1, renderTargetIdx = 2;
+    private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 2;
     private GlTexture overlayTexture = null;
     private GlFramebuffer overlayBuffer = null;
+
+    private float[] cropScale = new float[]{1, 1};
+    public void setCropScale(float[] newScale) { cropScale = newScale; }
+    public void setCropScale(float x, float y) { setCropScale(new float[]{x, y}); }
 
     @NonNull
     @Override
@@ -36,6 +46,9 @@ public class CombineFilter extends BaseFilter {
 
         overlayLocation = GLES20.glGetUniformLocation(programHandle, "overlayTex");
         Egloo.checkGlProgramLocation(overlayLocation, "overlayTex");
+
+        cropScaleLocation = GLES20.glGetUniformLocation(programHandle, "cropScale");
+        Egloo.checkGlProgramLocation(overlayLocation, "cropScale");
     }
 
     @Override
@@ -53,6 +66,9 @@ public class CombineFilter extends BaseFilter {
 
         GLES20.glUniform1i(overlayLocation, renderTargetIdx);
         Egloo.checkGlError("glUniform1i");
+
+        GLES20.glUniform2fv(cropScaleLocation, 1, cropScale, 0);
+        Egloo.checkGlError("glUniform2fv");
     }
 
     @Override
