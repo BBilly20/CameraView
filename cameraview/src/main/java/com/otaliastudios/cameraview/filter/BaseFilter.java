@@ -90,7 +90,7 @@ public abstract class BaseFilter implements Filter {
 
     @VisibleForTesting GlTextureProgram program = null;
     private GlDrawable programDrawable = null;
-    @VisibleForTesting Size size;
+    protected Size size;
 
     @SuppressWarnings("WeakerAccess")
     protected String vertexPositionName = DEFAULT_VERTEX_POSITION_NAME;

@@ -28,7 +28,7 @@ public class CombineFilter extends BaseFilter {
         "  gl_FragColor = mix(texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+"), overlay, overlay.a);\n" +
         "}\n";
 
-    private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 2;
+    private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 31;
     private GlTexture overlayTexture = null;
     private GlFramebuffer overlayBuffer = null;
 
@@ -73,10 +73,12 @@ public class CombineFilter extends BaseFilter {
 
     @Override
     public void setSize(int width, int height) {
-        super.setSize(width, height);
+        if(width != 0 && height != 0 && (size == null || size.getWidth() != width || size.getHeight() != height)){
+            release();
+            init(width, height);
+        }
 
-        release();
-        init(width, height);
+        super.setSize(width, height);
     }
 
     private void init(int w, int h){

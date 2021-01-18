@@ -37,7 +37,7 @@ public class ARPreview extends GlCameraPreview {
     protected GLSurfaceView onCreateView(@NonNull Context context, @NonNull ViewGroup parent) {
         GLSurfaceView v = super.onCreateView(context, parent);
 
-        v.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+//        v.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); //should be needed for physics simulation
 
         return v;
     }
@@ -62,20 +62,22 @@ public class ARPreview extends GlCameraPreview {
         @RendererThread
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-            if (mCurrentFilter == null) {
-                mCurrentFilter = prepareFilter(new NoFilter());
-            }
-            mOutputTextureDrawer = new GlTextureDrawer();
-            mOutputTextureDrawer.setFilter(mCurrentFilter);
-            final int textureId = mOutputTextureDrawer.getTexture().getId();
-            mInputSurfaceTexture = new SurfaceTexture(textureId);
-            getView().queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    for (RendererFrameCallback callback : mRendererFrameCallbacks)
-                        callback.onRendererTextureCreated(textureId);
-                }
-            });
+//            if (mCurrentFilter == null) {
+//                mCurrentFilter = prepareFilter(new NoFilter());
+//            }
+//            mOutputTextureDrawer = new GlTextureDrawer();
+//            mOutputTextureDrawer.setFilter(mCurrentFilter);
+//            final int textureId = mOutputTextureDrawer.getTexture().getId();
+//            mInputSurfaceTexture = new SurfaceTexture(textureId);
+//            getView().queueEvent(new Runnable() {
+//                @Override
+//                public void run() {
+//                    for (RendererFrameCallback callback : mRendererFrameCallbacks)
+//                        callback.onRendererTextureCreated(textureId);
+//                }
+//            });
+
+            super.onSurfaceCreated(gl , config); //use this line if physics simulation is not needed
 
             GLES20.glClearColor(0,0,0,0);
 
