@@ -12,6 +12,18 @@ import com.otaliastudios.opengl.texture.GlTexture;
 
 public class CombineFilter extends BaseFilter {
 
+    private static CombineFilter latest_instance;
+
+    public static void setCropScale(float x, float y) {
+        if(latest_instance != null)
+            latest_instance.setCropScale(new float[]{x, y});
+    }
+
+    public static void bindRenderBuffer(){
+        if(latest_instance != null)
+            latest_instance.bind();
+    }
+
     private final static String FRAGMENT_SHADER = "#extension GL_OES_EGL_image_external : require\n" +
         "precision mediump float;\n" +
         "varying vec2 "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+";\n" +
@@ -34,7 +46,13 @@ public class CombineFilter extends BaseFilter {
 
     private float[] cropScale = new float[]{1, 1};
     public void setCropScale(float[] newScale) { cropScale = newScale; }
-    public void setCropScale(float x, float y) { setCropScale(new float[]{x, y}); }
+
+    public CombineFilter(){
+        if(latest_instance != null)
+            latest_instance.onDestroy();
+
+        latest_instance = this;
+    }
 
     @NonNull
     @Override
@@ -73,22 +91,22 @@ public class CombineFilter extends BaseFilter {
 
     @Override
     public void setSize(int width, int height) {
-        if(width != 0 && height != 0 && (size == null || size.getWidth() != width || size.getHeight() != height)){
-            release();
+        if(width > 0 && height > 0 && (size == null || size.getWidth() != width || size.getHeight() != height))
             init(width, height);
-        }
 
         super.setSize(width, height);
     }
 
     private void init(int w, int h){
+        if(overlayBuffer != null)
+            release();
+
         overlayBuffer = new GlFramebuffer();
         overlayBuffer.attach(overlayTexture = new GlTexture(GLES20.GL_TEXTURE0 + renderTargetIdx, GLES20.GL_TEXTURE_2D, w, h));
     }
 
     private void release(){
-        if(overlayBuffer == null)
-            return;
+        if(overlayBuffer == null) return;
 
         overlayTexture.release();
         overlayTexture = null;
@@ -96,7 +114,9 @@ public class CombineFilter extends BaseFilter {
         overlayBuffer = null;
     }
 
-    public void bindRenderBuffer(){
+    public void bind(){
+        if(overlayBuffer == null) return;
+
         overlayBuffer.bind();
     }
 }

@@ -20,8 +20,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class ARPreview extends GlCameraPreview {
 
-    private CombineFilter combineFilter = null;
-
     public ARPreview(@NonNull Context context, @NonNull ViewGroup parent) {
         super(context, parent);
     }
@@ -37,7 +35,7 @@ public class ARPreview extends GlCameraPreview {
     protected GLSurfaceView onCreateView(@NonNull Context context, @NonNull ViewGroup parent) {
         GLSurfaceView v = super.onCreateView(context, parent);
 
-//        v.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); //should be needed for physics simulation
+        v.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); //should be needed for physics simulation
 
         return v;
     }
@@ -50,10 +48,7 @@ public class ARPreview extends GlCameraPreview {
     private Filter prepareFilter(Filter filter){
         MultiFilter f = filter instanceof MultiFilter ? (MultiFilter) filter : new MultiFilter(filter);
 
-        if(combineFilter == null)
-            combineFilter = new CombineFilter();
-
-        f.insertFilter(combineFilter);
+        f.insertFilter(new CombineFilter());
 
         return f;
     }
@@ -62,22 +57,28 @@ public class ARPreview extends GlCameraPreview {
         @RendererThread
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-//            if (mCurrentFilter == null) {
-//                mCurrentFilter = prepareFilter(new NoFilter());
-//            }
-//            mOutputTextureDrawer = new GlTextureDrawer();
-//            mOutputTextureDrawer.setFilter(mCurrentFilter);
-//            final int textureId = mOutputTextureDrawer.getTexture().getId();
-//            mInputSurfaceTexture = new SurfaceTexture(textureId);
-//            getView().queueEvent(new Runnable() {
-//                @Override
-//                public void run() {
-//                    for (RendererFrameCallback callback : mRendererFrameCallbacks)
-//                        callback.onRendererTextureCreated(textureId);
-//                }
-//            });
 
-            super.onSurfaceCreated(gl , config); //use this line if physics simulation is not needed
+            mCurrentFilter = mCurrentFilter == null ? prepareFilter(new NoFilter()) : mCurrentFilter.copy();
+
+            mOutputTextureDrawer = new GlTextureDrawer();
+            mOutputTextureDrawer.setFilter(mCurrentFilter);
+            final int textureId = mOutputTextureDrawer.getTexture().getId();
+            mInputSurfaceTexture = new SurfaceTexture(textureId);
+            getView().queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    for (RendererFrameCallback callback : mRendererFrameCallbacks)
+                        callback.onRendererTextureCreated(textureId);
+                }
+            });
+
+            if(getView().getRenderMode() == GLSurfaceView.RENDERMODE_WHEN_DIRTY)
+                mInputSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+                    @Override
+                    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                    getView().requestRender(); // requestRender is thread-safe.
+                    }
+                });
 
             GLES20.glClearColor(0,0,0,0);
 
@@ -111,13 +112,14 @@ public class ARPreview extends GlCameraPreview {
             }
 
             if (isCropping()) {
-                combineFilter.setCropScale(mCropScaleX, mCropScaleY);
+                CombineFilter.setCropScale(mCropScaleX, mCropScaleY);
 
                 Matrix.translateM(transform, 0, (1F - mCropScaleX) / 2F, (1F - mCropScaleY) / 2F, 0);
                 Matrix.scaleM(transform, 0, mCropScaleX, mCropScaleY, 1);
             }
 
-            combineFilter.bindRenderBuffer();
+            CombineFilter.bindRenderBuffer();
+
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
             onDrawFrameCallback();

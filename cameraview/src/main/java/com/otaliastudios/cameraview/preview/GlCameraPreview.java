@@ -142,9 +142,9 @@ public class GlCameraPreview extends CameraPreview<GLSurfaceView, SurfaceTexture
         @RendererThread
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-            if (mCurrentFilter == null) {
-                mCurrentFilter = new NoFilter();
-            }
+
+            mCurrentFilter = mCurrentFilter == null ? new NoFilter() : mCurrentFilter.copy();
+
             mOutputTextureDrawer = new GlTextureDrawer();
             mOutputTextureDrawer.setFilter(mCurrentFilter);
             final int textureId = mOutputTextureDrawer.getTexture().getId();

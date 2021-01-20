@@ -135,7 +135,10 @@ public abstract class BaseFilter implements Filter {
         // will NOT destroy the GL program. This is important because Filters are not supposed
         // to have ownership of programs. Creation and deletion happen outside, and deleting twice
         // would cause an error.
-        program.release();
+
+        if(program != null)
+            program.release();
+
         program = null;
         programDrawable = null;
     }
