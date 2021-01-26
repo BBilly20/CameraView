@@ -79,6 +79,7 @@ import com.otaliastudios.cameraview.preview.ARPreview;
 import com.otaliastudios.cameraview.preview.CameraPreview;
 import com.otaliastudios.cameraview.preview.FilterCameraPreview;
 import com.otaliastudios.cameraview.preview.GlCameraPreview;
+import com.otaliastudios.cameraview.preview.RendererCallbacks;
 import com.otaliastudios.cameraview.preview.SurfaceCameraPreview;
 import com.otaliastudios.cameraview.preview.TextureCameraPreview;
 import com.otaliastudios.cameraview.size.AspectRatio;
@@ -165,7 +166,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     // Overlays
     @VisibleForTesting OverlayLayout mOverlayLayout;
 
-    private String customPreviewClass;
+    private String rendererCallbacks;
 
     public CameraView(@NonNull Context context) {
         super(context, null);
@@ -189,7 +190,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
                 0, 0);
         ControlParser controls = new ControlParser(context, a);
 
-        customPreviewClass = a.getString(R.styleable.CameraView_customPreviewClass);
+        rendererCallbacks = a.getString(R.styleable.CameraView_rendererCallbacks);
 
         // Self managed
         boolean playSounds = a.getBoolean(R.styleable.CameraView_cameraPlaySounds,
@@ -375,14 +376,6 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
                                                @NonNull Context context,
                                                @NonNull ViewGroup container) {
 
-        if(customPreviewClass != null) {
-            try {
-                return (CameraPreview) Class.forName(customPreviewClass).getConstructors()[0].newInstance(context, container);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         switch (preview) {
             case SURFACE:
                 return new SurfaceCameraPreview(context, container);
@@ -398,7 +391,16 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
             }
             case AR: {
                 mPreview = Preview.AR;
-                return new ARPreview(context, container);
+
+                RendererCallbacks callbacks = null;
+
+                try {
+                    callbacks = rendererCallbacks == null ? null : (RendererCallbacks) Class.forName(rendererCallbacks).newInstance();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return new ARPreview(context, container, callbacks);
             }
         }
     }

@@ -168,7 +168,7 @@
         <attr name="cameraRequestPermissions" format="boolean|reference"/>
         <attr name="cameraExperimental" format="boolean|reference" />
 
-        <attr name="customPreviewClass" format="string|reference"/>
+        <attr name="rendererCallbacks" format="string|reference"/>
     </declare-styleable>
 
     <declare-styleable name="CameraView_Layout">

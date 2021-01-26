@@ -20,8 +20,12 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class ARPreview extends GlCameraPreview {
 
-    public ARPreview(@NonNull Context context, @NonNull ViewGroup parent) {
+    private RendererCallbacks callbacks;
+
+    public ARPreview(@NonNull Context context, @NonNull ViewGroup parent, RendererCallbacks callbacks) {
         super(context, parent);
+
+        this.callbacks = callbacks;
     }
 
     @NonNull
@@ -53,7 +57,7 @@ public class ARPreview extends GlCameraPreview {
         return f;
     }
 
-    public class Renderer extends GlCameraPreview.Renderer implements RendererCallbacks {
+    public class Renderer extends GlCameraPreview.Renderer{
         @RendererThread
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -85,7 +89,7 @@ public class ARPreview extends GlCameraPreview {
             GLES20.glEnable(GLES20.GL_BLEND);
             GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
-            onSurfaceCreatedCallback();
+            callbacks.onSurfaceCreated();
         }
 
         @Override
@@ -93,7 +97,7 @@ public class ARPreview extends GlCameraPreview {
         {
             super.onSurfaceChanged(glUnused, width, height);
 
-            onSurfaceChangedCallback(width, height);
+            callbacks.onSurfaceChanged(width, height);
         }
 
         @RendererThread
@@ -122,7 +126,7 @@ public class ARPreview extends GlCameraPreview {
 
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
-            onDrawFrameCallback();
+            callbacks.onDrawFrame();
 
             mOutputTextureDrawer.draw(mInputSurfaceTexture.getTimestamp() / 1000L);
 
@@ -130,11 +134,5 @@ public class ARPreview extends GlCameraPreview {
                 callback.onRendererFrame(mInputSurfaceTexture, mDrawRotation, mCropScaleX, mCropScaleY);
             }
         }
-
-        public void onSurfaceCreatedCallback(){ }
-
-        public void onSurfaceChangedCallback(int w, int h){ }
-
-        public void onDrawFrameCallback(){ }
     }
 }
