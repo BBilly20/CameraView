@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -167,6 +168,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     @VisibleForTesting OverlayLayout mOverlayLayout;
 
     private String rendererCallbacks;
+    private int focusMode;
 
     public CameraView(@NonNull Context context) {
         super(context, null);
@@ -231,6 +233,10 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
                 DEFAULT_FRAME_PROCESSING_POOL_SIZE);
         int frameExecutors = a.getInteger(R.styleable.CameraView_cameraFrameProcessingExecutors,
                 DEFAULT_FRAME_PROCESSING_EXECUTORS);
+
+        focusMode = a.getInteger(R.styleable.CameraView_cameraDefaultFocusMode, 0);
+
+        Log.d("dummy", "focus mode is: " + focusMode);
 
         // Size selectors and gestures
         SizeSelectorParser sizeSelectors = new SizeSelectorParser(a);
@@ -319,7 +325,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
      */
     private void doInstantiateEngine() {
         LOG.w("doInstantiateEngine:", "instantiating. engine:", mEngine);
-        mCameraEngine = instantiateCameraEngine(mEngine, mCameraCallbacks);
+        mCameraEngine = instantiateCameraEngine(mEngine, mCameraCallbacks, focusMode);
         LOG.w("doInstantiateEngine:", "instantiated. engine:",
                 mCameraEngine.getClass().getSimpleName());
         mCameraEngine.setOverlay(mOverlayLayout);
@@ -352,14 +358,14 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
      */
     @NonNull
     protected CameraEngine instantiateCameraEngine(@NonNull Engine engine,
-                                                   @NonNull CameraEngine.Callback callback) {
+                                                   @NonNull CameraEngine.Callback callback, int focusMode) {
         if (mExperimental
                 && engine == Engine.CAMERA2
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             return new Camera2Engine(callback);
         } else {
             mEngine = Engine.CAMERA1;
-            return new Camera1Engine(callback);
+            return new Camera1Engine(callback, focusMode);
         }
     }
 

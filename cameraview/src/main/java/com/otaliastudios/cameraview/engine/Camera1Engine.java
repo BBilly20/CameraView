@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.google.android.gms.tasks.Task;
@@ -70,8 +71,30 @@ public class Camera1Engine extends CameraBaseEngine implements
     private Camera mCamera;
     @VisibleForTesting int mCameraId;
 
+    private final String defaultFocusMode;
+
+    public Camera1Engine(@NonNull Callback callback, int focusMode) {
+        super(callback);
+
+        switch(focusMode){
+            case 1:
+                defaultFocusMode = Camera.Parameters.FOCUS_MODE_EDOF;
+                break;
+            case 2:
+                defaultFocusMode = Camera.Parameters.FOCUS_MODE_FIXED;
+                break;
+            case 3:
+                defaultFocusMode = Camera.Parameters.FOCUS_MODE_INFINITY;
+                break;
+            default:
+                defaultFocusMode = null;
+        }
+    }
+
     public Camera1Engine(@NonNull Callback callback) {
         super(callback);
+
+        defaultFocusMode = null;
     }
 
     //region Utilities
@@ -491,23 +514,41 @@ public class Camera1Engine extends CameraBaseEngine implements
     private void applyDefaultFocus(@NonNull Camera.Parameters params) {
         List<String> modes = params.getSupportedFocusModes();
 
+        Log.d("dummy", "modes count: " + modes.size());
+
+        for (String s : modes) {
+            Log.d("dummy", "supported mode: " + s + "\n");
+        }
+
+        if(defaultFocusMode != null && modes.contains(defaultFocusMode)){
+            Log.d("dummy", "setting user defined default focus: " + defaultFocusMode);
+            params.setFocusMode(defaultFocusMode);
+            return;
+        }
+
+//        Log.d("dummy", "setting library default focus mode");
+
         if (getMode() == Mode.VIDEO &&
                 modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+            Log.d("dummy", "setting continuous video focus");
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
             return;
         }
 
         if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            Log.d("dummy", "setting continuous picture focus");
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             return;
         }
 
         if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+            Log.d("dummy", "setting infinity focus");
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
             return;
         }
 
         if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+            Log.d("dummy", "setting fixed focus");
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
             //noinspection UnnecessaryReturnStatement
             return;
