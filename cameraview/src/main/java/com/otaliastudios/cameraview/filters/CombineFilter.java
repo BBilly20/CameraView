@@ -33,14 +33,21 @@ public class CombineFilter extends BaseFilter {
         "vec2 rotate(vec2 v, float a){\n" +
         "  float s = sin(radians(a));\n" +
         "  float c = cos(radians(a));\n" +
-        "  return (mat2(c,s,-s,c) * (v - 0.5)) / cropScale + 0.5;" +
-        "}" +
+        "  return (mat2(c,s,-s,c) * (v - 0.5)) / cropScale + 0.5;\n" +
+        "}\n" +
         "void main(){\n" +
         "  vec4 overlay = texture2D(overlayTex, rotate("+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+", 90.0));\n" +
-        "  gl_FragColor = mix(texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+"), overlay, overlay.a);\n" +
+        "  vec4 src = texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+");\n" +
+//        "  if(all(lessThanEqual("+ DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME +", vec2(0.5, 0.5)))){\n" +
+//        "  if(false){\n" +
+        "    gl_FragColor = mix(src, overlay, overlay.a);\n" +
+//        "    gl_FragColor = mix(overlay, src, src.a);\n" +
+//        "  }else{\n" +
+//        "    gl_FragColor = src;\n" +
+//        "  }\n" +
         "}\n";
 
-    private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 31;
+    private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 1;
     private GlTexture overlayTexture = null;
     private GlFramebuffer overlayBuffer = null;
 
@@ -82,12 +89,25 @@ public class CombineFilter extends BaseFilter {
 
         overlayTexture.bind();
 
+        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+
+//        GLES20.glClearColor(0,0,0,0);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+
         GLES20.glUniform1i(overlayLocation, renderTargetIdx);
         Egloo.checkGlError("glUniform1i");
 
         GLES20.glUniform2fv(cropScaleLocation, 1, cropScale, 0);
         Egloo.checkGlError("glUniform2fv");
     }
+
+//    @Override
+//    protected void onPostDraw(@SuppressWarnings("unused") long timestampUs){
+//        super.onPostDraw(timestampUs);
+//
+//        GLES20.glDisable(GLES20.GL_BLEND);
+//    }
 
     @Override
     public void setSize(int width, int height) {

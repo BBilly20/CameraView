@@ -84,11 +84,6 @@ public class ARPreview extends GlCameraPreview {
                     }
                 });
 
-            GLES20.glClearColor(0,0,0,0);
-
-            GLES20.glEnable(GLES20.GL_BLEND);
-            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
             callbacks.onSurfaceCreated();
         }
 
@@ -123,8 +118,6 @@ public class ARPreview extends GlCameraPreview {
             }
 
             CombineFilter.bindRenderBuffer();
-
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
             callbacks.onDrawFrame();
 

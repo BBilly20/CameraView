@@ -168,7 +168,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     @VisibleForTesting OverlayLayout mOverlayLayout;
 
     private String rendererCallbacks;
-    private int focusMode;
+    private String focusMode;
 
     public CameraView(@NonNull Context context) {
         super(context, null);
@@ -234,9 +234,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
         int frameExecutors = a.getInteger(R.styleable.CameraView_cameraFrameProcessingExecutors,
                 DEFAULT_FRAME_PROCESSING_EXECUTORS);
 
-        focusMode = a.getInteger(R.styleable.CameraView_cameraDefaultFocusMode, 0);
-
-        Log.d("dummy", "focus mode is: " + focusMode);
+        focusMode = a.getString(R.styleable.CameraView_cameraDefaultFocusMode);
 
         // Size selectors and gestures
         SizeSelectorParser sizeSelectors = new SizeSelectorParser(a);
@@ -325,7 +323,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
      */
     private void doInstantiateEngine() {
         LOG.w("doInstantiateEngine:", "instantiating. engine:", mEngine);
-        mCameraEngine = instantiateCameraEngine(mEngine, mCameraCallbacks, focusMode);
+        mCameraEngine = instantiateCameraEngine(mEngine, mCameraCallbacks);
         LOG.w("doInstantiateEngine:", "instantiated. engine:",
                 mCameraEngine.getClass().getSimpleName());
         mCameraEngine.setOverlay(mOverlayLayout);
@@ -358,7 +356,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
      */
     @NonNull
     protected CameraEngine instantiateCameraEngine(@NonNull Engine engine,
-                                                   @NonNull CameraEngine.Callback callback, int focusMode) {
+                                                   @NonNull CameraEngine.Callback callback) {
         if (mExperimental
                 && engine == Engine.CAMERA2
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

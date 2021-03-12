@@ -170,11 +170,7 @@
 
         <attr name="rendererCallbacks" format="string|reference"/>
 
-        <attr name="cameraDefaultFocusMode" format="enum">
-            <enum name="edof" value="1"/>
-            <enum name="fixed" value="2"/>
-            <enum name="infinity" value="3"/>
-        </attr>
+        <attr name="cameraDefaultFocusMode" format="string|reference"/>
     </declare-styleable>
 
     <declare-styleable name="CameraView_Layout">
