@@ -62,7 +62,9 @@ public class ARPreview extends GlCameraPreview {
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 
-            mCurrentFilter = mCurrentFilter == null ? prepareFilter(new NoFilter()) : mCurrentFilter.copy();
+//            mCurrentFilter = mCurrentFilter == null ? prepareFilter(new NoFilter()) : mCurrentFilter.copy();
+//            mCurrentFilter = new NoFilter();
+            mCurrentFilter = new CombineFilter();
 
             mOutputTextureDrawer = new GlTextureDrawer();
             mOutputTextureDrawer.setFilter(mCurrentFilter);
@@ -120,6 +122,8 @@ public class ARPreview extends GlCameraPreview {
             CombineFilter.bindRenderBuffer();
 
             callbacks.onDrawFrame();
+
+            CombineFilter.unbindRenderBuffer();
 
             mOutputTextureDrawer.draw(mInputSurfaceTexture.getTimestamp() / 1000L);
 

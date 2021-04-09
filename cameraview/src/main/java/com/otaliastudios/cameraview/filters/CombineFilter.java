@@ -1,6 +1,7 @@
 package com.otaliastudios.cameraview.filters;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -12,17 +13,7 @@ import com.otaliastudios.opengl.texture.GlTexture;
 
 public class CombineFilter extends BaseFilter {
 
-    private static CombineFilter latest_instance;
-
-    public static void setCropScale(float x, float y) {
-        if(latest_instance != null)
-            latest_instance.setCropScale(new float[]{x, y});
-    }
-
-    public static void bindRenderBuffer(){
-        if(latest_instance != null)
-            latest_instance.bind();
-    }
+//    private static CombineFilter latest_instance;
 
     private final static String FRAGMENT_SHADER = "#extension GL_OES_EGL_image_external : require\n" +
         "precision mediump float;\n" +
@@ -39,27 +30,26 @@ public class CombineFilter extends BaseFilter {
         "  vec4 overlay = texture2D(overlayTex, rotate("+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+", 90.0));\n" +
         "  vec4 src = texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+");\n" +
 //        "  if(all(lessThanEqual("+ DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME +", vec2(0.5, 0.5)))){\n" +
-//        "  if(false){\n" +
-        "    gl_FragColor = mix(src, overlay, overlay.a);\n" +
+//        "  if(true){\n" +
+        "    gl_FragColor = mix(src, overlay, overlay.a);\n" + //***
 //        "    gl_FragColor = mix(overlay, src, src.a);\n" +
+//        "    gl_FragColor = vec4(src.xyz, overlay.a);\n" +
 //        "  }else{\n" +
 //        "    gl_FragColor = src;\n" +
 //        "  }\n" +
         "}\n";
 
     private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 1;
-    private GlTexture overlayTexture = null;
-    private GlFramebuffer overlayBuffer = null;
 
-    private float[] cropScale = new float[]{1, 1};
-    public void setCropScale(float[] newScale) { cropScale = newScale; }
+    private static int width, height, count = 0;
+    private static boolean initialized = false;
+    private static GlTexture overlayTexture = null;
+    private static GlFramebuffer overlayBuffer = null;
 
-    public CombineFilter(){
-        if(latest_instance != null)
-            latest_instance.onDestroy();
+    private static float[] cropScale = new float[]{1, 1};
+    public static void setCropScale(float x, float y) { cropScale = new float[]{x, y}; }
 
-        latest_instance = this;
-    }
+//    public CombineFilter(){ }
 
     @NonNull
     @Override
@@ -69,18 +59,21 @@ public class CombineFilter extends BaseFilter {
     public void onCreate(int programHandle) {
         super.onCreate(programHandle);
 
+        count++;
+
         overlayLocation = GLES20.glGetUniformLocation(programHandle, "overlayTex");
         Egloo.checkGlProgramLocation(overlayLocation, "overlayTex");
 
         cropScaleLocation = GLES20.glGetUniformLocation(programHandle, "cropScale");
-        Egloo.checkGlProgramLocation(overlayLocation, "cropScale");
+        Egloo.checkGlProgramLocation(cropScaleLocation, "cropScale");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        release();
+        if(--count == 0)
+            release();
     }
 
     @Override
@@ -90,8 +83,8 @@ public class CombineFilter extends BaseFilter {
         overlayTexture.bind();
 
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-
 //        GLES20.glClearColor(0,0,0,0);
+
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -102,27 +95,58 @@ public class CombineFilter extends BaseFilter {
         Egloo.checkGlError("glUniform2fv");
     }
 
-//    @Override
-//    protected void onPostDraw(@SuppressWarnings("unused") long timestampUs){
-//        super.onPostDraw(timestampUs);
-//
-//        GLES20.glDisable(GLES20.GL_BLEND);
-//    }
+    @Override
+    protected void onPostDraw(@SuppressWarnings("unused") long timestampUs){
+        super.onPostDraw(timestampUs);
+
+        overlayTexture.unbind();
+
+        GLES20.glDisable(GLES20.GL_BLEND);
+    }
 
     @Override
-    public void setSize(int width, int height) {
-        if(width > 0 && height > 0 && (size == null || size.getWidth() != width || size.getHeight() != height))
-            init(width, height);
+    public void setSize(int w, int h) {
+        if(w > 0 && h > 0 && (w != width || h != height))
+            init(w, h);
 
-        super.setSize(width, height);
+        super.setSize(w, h);
     }
 
     private void init(int w, int h){
+        width = w;
+        height = h;
+
         if(overlayBuffer != null)
             release();
 
+        overlayTexture = new GlTexture(GLES20.GL_TEXTURE0 + renderTargetIdx, GLES20.GL_TEXTURE_2D, width, height);
+
         overlayBuffer = new GlFramebuffer();
-        overlayBuffer.attach(overlayTexture = new GlTexture(GLES20.GL_TEXTURE0 + renderTargetIdx, GLES20.GL_TEXTURE_2D, w, h));
+        overlayBuffer.attach(overlayTexture);
+
+        overlayBuffer.bind();
+
+        int[] bufferHandles = new int[1];
+        GLES20.glGenRenderbuffers(1, bufferHandles, 0);
+        Egloo.checkGlError("glGenRenderbuffers");
+        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, bufferHandles[0]);
+        Egloo.checkGlError("glBindRenderbuffer");
+        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height);
+        Egloo.checkGlError("glRenderbufferStorage");
+        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT, GLES20.GL_RENDERBUFFER, bufferHandles[0]);
+        Egloo.checkGlError("glFramebufferRenderbuffer");
+
+        overlayBuffer.unbind();
+    }
+
+    public static void bindRenderBuffer(){
+        if(overlayBuffer != null)
+            overlayBuffer.bind();
+    }
+
+    public static void unbindRenderBuffer(){
+        if(overlayBuffer != null)
+            overlayBuffer.unbind();
     }
 
     private void release(){
@@ -132,11 +156,5 @@ public class CombineFilter extends BaseFilter {
         overlayTexture = null;
         overlayBuffer.release();
         overlayBuffer = null;
-    }
-
-    public void bind(){
-        if(overlayBuffer == null) return;
-
-        overlayBuffer.bind();
     }
 }
