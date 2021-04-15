@@ -50,6 +50,9 @@ public class ARPreview extends GlCameraPreview {
     }
 
     private Filter prepareFilter(Filter filter){
+        if(filter instanceof NoFilter)
+            return new CombineFilter();
+
         MultiFilter f = filter instanceof MultiFilter ? (MultiFilter) filter : new MultiFilter(filter);
 
         f.insertFilter(new CombineFilter());
@@ -62,9 +65,9 @@ public class ARPreview extends GlCameraPreview {
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 
-//            mCurrentFilter = mCurrentFilter == null ? prepareFilter(new NoFilter()) : mCurrentFilter.copy();
+            mCurrentFilter = mCurrentFilter == null ? new CombineFilter() : mCurrentFilter.copy();
 //            mCurrentFilter = new NoFilter();
-            mCurrentFilter = new CombineFilter();
+//            mCurrentFilter = new CombineFilter();
 
             mOutputTextureDrawer = new GlTextureDrawer();
             mOutputTextureDrawer.setFilter(mCurrentFilter);

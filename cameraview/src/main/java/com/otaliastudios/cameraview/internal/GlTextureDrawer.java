@@ -71,9 +71,11 @@ public class GlTextureDrawer {
             mPendingFilter = null;
         }
 
-        if(mFilter instanceof MultiFilter)
+        if(mFilter instanceof MultiFilter) {
+            mTexture.bind();
             mFilter.draw(timestampUs, mTextureTransform);
-        else{
+            mTexture.unbind();
+        }else{
             if (mProgramHandle == -1) {
                 mProgramHandle = GlProgram.create(mFilter.getVertexShader(), mFilter.getFragmentShader());
                 mFilter.onCreate(mProgramHandle);
@@ -84,9 +86,7 @@ public class GlTextureDrawer {
             Egloo.checkGlError("glUseProgram(handle)");
 
             mTexture.bind();
-
             mFilter.draw(timestampUs, mTextureTransform);
-
             mTexture.unbind();
 
             GLES20.glUseProgram(0);
