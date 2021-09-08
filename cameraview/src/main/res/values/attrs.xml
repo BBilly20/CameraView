@@ -168,9 +168,9 @@
         <attr name="cameraRequestPermissions" format="boolean|reference"/>
         <attr name="cameraExperimental" format="boolean|reference" />
 
-        <attr name="rendererCallbacks" format="string|reference"/>
+        <attr name="customPreviewCallback" format="string|reference"/>
 
-        <attr name="cameraDefaultFocusMode" format="string|reference"/>
+        <attr name="preferredCamera1FocusMode" format="string|reference"/>
     </declare-styleable>
 
     <declare-styleable name="CameraView_Layout">

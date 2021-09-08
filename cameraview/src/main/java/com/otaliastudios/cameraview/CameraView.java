@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,7 +79,7 @@ import com.otaliastudios.cameraview.preview.ARPreview;
 import com.otaliastudios.cameraview.preview.CameraPreview;
 import com.otaliastudios.cameraview.preview.FilterCameraPreview;
 import com.otaliastudios.cameraview.preview.GlCameraPreview;
-import com.otaliastudios.cameraview.preview.RendererCallbacks;
+import com.otaliastudios.cameraview.preview.CustomPreviewCallback;
 import com.otaliastudios.cameraview.preview.SurfaceCameraPreview;
 import com.otaliastudios.cameraview.preview.TextureCameraPreview;
 import com.otaliastudios.cameraview.size.AspectRatio;
@@ -167,7 +166,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     // Overlays
     @VisibleForTesting OverlayLayout mOverlayLayout;
 
-    private String rendererCallbacks;
+    private String customPreviewCallback;
     private String focusMode;
 
     public CameraView(@NonNull Context context) {
@@ -192,7 +191,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
                 0, 0);
         ControlParser controls = new ControlParser(context, a);
 
-        rendererCallbacks = a.getString(R.styleable.CameraView_rendererCallbacks);
+        customPreviewCallback = a.getString(R.styleable.CameraView_customPreviewCallback);
 
         // Self managed
         boolean playSounds = a.getBoolean(R.styleable.CameraView_cameraPlaySounds,
@@ -234,7 +233,7 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
         int frameExecutors = a.getInteger(R.styleable.CameraView_cameraFrameProcessingExecutors,
                 DEFAULT_FRAME_PROCESSING_EXECUTORS);
 
-        focusMode = a.getString(R.styleable.CameraView_cameraDefaultFocusMode);
+        focusMode = a.getString(R.styleable.CameraView_preferredCamera1FocusMode);
 
         // Size selectors and gestures
         SizeSelectorParser sizeSelectors = new SizeSelectorParser(a);
@@ -396,10 +395,10 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
             case AR: {
                 mPreview = Preview.AR;
 
-                RendererCallbacks callbacks = null;
+                CustomPreviewCallback callbacks = null;
 
                 try {
-                    callbacks = rendererCallbacks == null ? null : (RendererCallbacks) Class.forName(rendererCallbacks).newInstance();
+                    callbacks = customPreviewCallback == null ? null : (CustomPreviewCallback) Class.forName(customPreviewCallback).newInstance();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

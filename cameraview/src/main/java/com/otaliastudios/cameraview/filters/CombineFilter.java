@@ -41,8 +41,8 @@ public class CombineFilter extends BaseFilter {
 
     private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 1;
 
-    private static int width, height, count = 0;
-    private static boolean initialized = false;
+//    private static int width, height, count = 0;
+//    private static boolean initialized = false;
     private static GlTexture overlayTexture = null;
     private static GlFramebuffer overlayBuffer = null;
 
@@ -59,7 +59,7 @@ public class CombineFilter extends BaseFilter {
     public void onCreate(int programHandle) {
         super.onCreate(programHandle);
 
-        count++;
+//        count++;
 
         overlayLocation = GLES20.glGetUniformLocation(programHandle, "overlayTex");
         Egloo.checkGlProgramLocation(overlayLocation, "overlayTex");
@@ -72,8 +72,8 @@ public class CombineFilter extends BaseFilter {
     public void onDestroy() {
         super.onDestroy();
 
-        if(--count == 0)
-            release();
+//        if(--count == 0)
+//            release();
     }
 
     @Override
@@ -104,17 +104,25 @@ public class CombineFilter extends BaseFilter {
         GLES20.glDisable(GLES20.GL_BLEND);
     }
 
-    @Override
-    public void setSize(int w, int h) {
-        if(w > 0 && h > 0 && (w != width || h != height))
-            init(w, h);
+//    @Override
+//    public void setSize(int w, int h) {
+//        if(w > 0 && h > 0 && (w != width || h != height))
+//            init(w, h);
+//
+//        super.setSize(w, h);
+//    }
 
-        super.setSize(w, h);
+    @Override
+    public void setSize(int width, int height) {
+        if(width > 0 && height > 0 && (this.size == null || this.size.getWidth() != width || this.size.getHeight() != height))
+            init(width, height);
+
+        super.setSize(width, height);
     }
 
-    private void init(int w, int h){
-        width = w;
-        height = h;
+    private void init(int width, int height){
+//        width = w;
+//        height = h;
 
         if(overlayBuffer != null)
             release();

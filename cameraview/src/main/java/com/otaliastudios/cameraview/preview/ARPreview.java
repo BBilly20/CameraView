@@ -2,7 +2,6 @@ package com.otaliastudios.cameraview.preview;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
-import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.view.ViewGroup;
@@ -20,9 +19,9 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class ARPreview extends GlCameraPreview {
 
-    private RendererCallbacks callbacks;
+    private CustomPreviewCallback callbacks;
 
-    public ARPreview(@NonNull Context context, @NonNull ViewGroup parent, RendererCallbacks callbacks) {
+    public ARPreview(@NonNull Context context, @NonNull ViewGroup parent, CustomPreviewCallback callbacks) {
         super(context, parent);
 
         this.callbacks = callbacks;
@@ -50,8 +49,8 @@ public class ARPreview extends GlCameraPreview {
     }
 
     private Filter prepareFilter(Filter filter){
-        if(filter instanceof NoFilter)
-            return new CombineFilter();
+//        if(filter instanceof NoFilter)
+//            return new CombineFilter();
 
         MultiFilter f = filter instanceof MultiFilter ? (MultiFilter) filter : new MultiFilter(filter);
 
@@ -65,9 +64,7 @@ public class ARPreview extends GlCameraPreview {
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 
-            mCurrentFilter = mCurrentFilter == null ? new CombineFilter() : mCurrentFilter.copy();
-//            mCurrentFilter = new NoFilter();
-//            mCurrentFilter = new CombineFilter();
+            mCurrentFilter = mCurrentFilter == null ? prepareFilter(new NoFilter()) : mCurrentFilter.copy();
 
             mOutputTextureDrawer = new GlTextureDrawer();
             mOutputTextureDrawer.setFilter(mCurrentFilter);
@@ -76,8 +73,8 @@ public class ARPreview extends GlCameraPreview {
             getView().queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    for (RendererFrameCallback callback : mRendererFrameCallbacks)
-                        callback.onRendererTextureCreated(textureId);
+                for (RendererFrameCallback callback : mRendererFrameCallbacks)
+                    callback.onRendererTextureCreated(textureId);
                 }
             });
 
@@ -89,7 +86,7 @@ public class ARPreview extends GlCameraPreview {
                     }
                 });
 
-            callbacks.onSurfaceCreated();
+            callbacks.onSurfaceCreatedCallback();
         }
 
         @Override
@@ -97,7 +94,7 @@ public class ARPreview extends GlCameraPreview {
         {
             super.onSurfaceChanged(glUnused, width, height);
 
-            callbacks.onSurfaceChanged(width, height);
+            callbacks.onSurfaceChangedCallback(width, height);
         }
 
         @RendererThread
@@ -116,17 +113,13 @@ public class ARPreview extends GlCameraPreview {
             }
 
             if (isCropping()) {
-                CombineFilter.setCropScale(mCropScaleX, mCropScaleY);
+                callbacks.onCrop(mCropScaleX, mCropScaleY);
 
                 Matrix.translateM(transform, 0, (1F - mCropScaleX) / 2F, (1F - mCropScaleY) / 2F, 0);
                 Matrix.scaleM(transform, 0, mCropScaleX, mCropScaleY, 1);
             }
 
-            CombineFilter.bindRenderBuffer();
-
-            callbacks.onDrawFrame();
-
-            CombineFilter.unbindRenderBuffer();
+            callbacks.onDrawFrameCallback();
 
             mOutputTextureDrawer.draw(mInputSurfaceTexture.getTimestamp() / 1000L);
 
