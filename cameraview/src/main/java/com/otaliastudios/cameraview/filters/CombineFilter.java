@@ -10,11 +10,7 @@ import com.otaliastudios.opengl.core.Egloo;
 import com.otaliastudios.opengl.texture.GlFramebuffer;
 import com.otaliastudios.opengl.texture.GlTexture;
 
-
 public class CombineFilter extends BaseFilter {
-
-//    private static CombineFilter latest_instance;
-
     private final static String FRAGMENT_SHADER = "#extension GL_OES_EGL_image_external : require\n" +
         "precision mediump float;\n" +
         "varying vec2 "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+";\n" +
@@ -29,27 +25,16 @@ public class CombineFilter extends BaseFilter {
         "void main(){\n" +
         "  vec4 overlay = texture2D(overlayTex, rotate("+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+", 90.0));\n" +
         "  vec4 src = texture2D(sTexture, "+DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME+");\n" +
-//        "  if(all(lessThanEqual("+ DEFAULT_FRAGMENT_TEXTURE_COORDINATE_NAME +", vec2(0.5, 0.5)))){\n" +
-//        "  if(true){\n" +
-        "    gl_FragColor = mix(src, overlay, overlay.a);\n" + //***
-//        "    gl_FragColor = mix(overlay, src, src.a);\n" +
-//        "    gl_FragColor = vec4(src.xyz, overlay.a);\n" +
-//        "  }else{\n" +
-//        "    gl_FragColor = src;\n" +
-//        "  }\n" +
+        "  gl_FragColor = mix(src, overlay, overlay.a);\n" +
         "}\n";
 
     private int overlayLocation = -1, cropScaleLocation = -1, renderTargetIdx = 1;
 
-//    private static int width, height, count = 0;
-//    private static boolean initialized = false;
     private static GlTexture overlayTexture = null;
     private static GlFramebuffer overlayBuffer = null;
 
     private static float[] cropScale = new float[]{1, 1};
     public static void setCropScale(float x, float y) { cropScale = new float[]{x, y}; }
-
-//    public CombineFilter(){ }
 
     @NonNull
     @Override
@@ -58,8 +43,6 @@ public class CombineFilter extends BaseFilter {
     @Override
     public void onCreate(int programHandle) {
         super.onCreate(programHandle);
-
-//        count++;
 
         overlayLocation = GLES20.glGetUniformLocation(programHandle, "overlayTex");
         Egloo.checkGlProgramLocation(overlayLocation, "overlayTex");
@@ -71,9 +54,6 @@ public class CombineFilter extends BaseFilter {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-//        if(--count == 0)
-//            release();
     }
 
     @Override
@@ -83,7 +63,6 @@ public class CombineFilter extends BaseFilter {
         overlayTexture.bind();
 
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-//        GLES20.glClearColor(0,0,0,0);
 
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -104,14 +83,6 @@ public class CombineFilter extends BaseFilter {
         GLES20.glDisable(GLES20.GL_BLEND);
     }
 
-//    @Override
-//    public void setSize(int w, int h) {
-//        if(w > 0 && h > 0 && (w != width || h != height))
-//            init(w, h);
-//
-//        super.setSize(w, h);
-//    }
-
     @Override
     public void setSize(int width, int height) {
         if(width > 0 && height > 0 && (this.size == null || this.size.getWidth() != width || this.size.getHeight() != height))
@@ -121,9 +92,6 @@ public class CombineFilter extends BaseFilter {
     }
 
     private void init(int width, int height){
-//        width = w;
-//        height = h;
-
         if(overlayBuffer != null)
             release();
 
